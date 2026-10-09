@@ -110,12 +110,11 @@ static void UpdateApplicationIcon(Clock *clock)
 		static NSImage *iconImage = nil;
 		static Clock *dockClock = nil;
 		NSWindow *iconWindow;
-		NSSize iconSize;
+		/* Window geometry may be changed by the window manager.  Keep the
+		 * generated bitmap size independent of that geometry. */
+		const NSSize iconSize = NSMakeSize(64, 64);
 
 		iconWindow = [NSApp iconWindow];
-		iconSize = [[iconWindow contentView] bounds].size;
-		if (iconSize.width <= 0 || iconSize.height <= 0)
-			iconSize = NSMakeSize(64, 64);
 
 		if (dockClock == nil)
 			dockClock = [[Clock alloc] initWithFrame:NSMakeRect(0, 0, iconSize.width, iconSize.height)];
@@ -439,6 +438,9 @@ static float volume_append = 1.0;
 
 	[NSApp setMainMenu: menu];
 	RELEASE(menu);
+	/* Hide before NSApplication performs its initial activation. */
+	[[menu window] setHidesOnDeactivate: YES];
+	[NSApp hide: self];
 
 	[[NSUserDefaults standardUserDefaults]
 	    registerDefaults:[NSDictionary dictionaryWithObject:@"NO" forKey:@"Cuckoo"]];
@@ -638,9 +640,9 @@ NSTimer *ctimer;
 		[bigClock setDate:d];
 	}
 
-	if ([defaults boolForKey: @"autolaunch"]) {
-	    [NSApp hide: self];
-	}
+	/* Start quietly in the dock, including launches without -autolaunch. */
+	[[[NSApp mainMenu] window] setHidesOnDeactivate: YES];
+	[NSApp hide: self];
 }
 
 @end
