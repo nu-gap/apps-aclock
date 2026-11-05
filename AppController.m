@@ -1,20 +1,5 @@
 /*
  Project: AClock
- AClockIconManager
-- (void) setApplicationIconData: (NSData *)data
-                       badgeText: (NSString *)badgeText
-                    appProcessId: (int)aProcessId;
-- (BOOL) respondsToSelector: (SEL)aSelector;
-
-
-@protocol AClockIconManager
-- (void) setApplicationIconData: (NSData *)data
-                       badgeText: (NSString *)badgeText
-                    appProcessId: (int)aProcessId;
-- (BOOL) respondsToSelector: (SEL)aSelector;
-@end
-
-@implementation AppController.m
 
  Copyright (C) 2003-2021 GNUstep Application Project
 
@@ -67,42 +52,6 @@ static void UpdateInfoPanelIcon(void)
 	}
 }
 
-static void UpdateIconManager(NSData *iconData)
-{
-	id manager;
-	SEL selector;
-	NSMethodSignature *signature;
-	NSInvocation *invocation;
-	NSString *badgeText = nil;
-	int processIdentifier;
-
-	manager = [NSConnection rootProxyForConnectionWithRegisteredName:@"GSIconManager"
-									 host:@""];
-	if (manager == nil)
-		return;
-
-	selector = @selector(setApplicationIconData:badgeText:appProcessId:);
-	NS_DURING
-		{
-			signature = [manager methodSignatureForSelector:selector];
-			if (signature != nil)
-				{
-					processIdentifier = [[NSProcessInfo processInfo] processIdentifier];
-					invocation = [NSInvocation invocationWithMethodSignature:signature];
-					[invocation setTarget:manager];
-					[invocation setSelector:selector];
-					[invocation setArgument:&iconData atIndex:2];
-					[invocation setArgument:&badgeText atIndex:3];
-					[invocation setArgument:&processIdentifier atIndex:4];
-					[invocation invoke];
-				}
-		}
-	NS_HANDLER
-		{
-		}
-	NS_ENDHANDLER
-}
-
 static void UpdateApplicationIcon(Clock *clock)
 {
 	if (clock != nil)
@@ -139,7 +88,6 @@ static void UpdateApplicationIcon(Clock *clock)
 
 		ASSIGN(iconImage, [dockClock imageRepresentation]);
 		[NSApp setApplicationIconImage:iconImage];
-		UpdateIconManager([dockClock TIFFRepresentation]);
 		[[iconWindow contentView] setNeedsDisplay:YES];
 		[iconWindow displayIfNeeded];
 	}
